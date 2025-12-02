@@ -1,0 +1,204 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User model - represents students and faculty
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  password      String
+  firstName     String
+  lastName      String
+  role          UserRole  @default(STUDENT)
+  isActive      Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  reviews       Review[]
+  comments      Comment[]
+  likes         Like[]
+  reports       Report[]
+  adminProfile  Admin?
+
+  @@map("users")
+}
+
+enum UserRole {
+  STUDENT
+  PROFESSOR
+  ADMIN
+}
+
+// Course model
+model Course {
+  id            String    @id @default(cuid())
+  code          String    @unique // e.g., "CS101"
+  name          String
+  description   String?
+  department    String
+  credits       Int
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  professors    CourseProfessor[]
+  reviews       Review[]
+
+  @@map("courses")
+}
+
+// Professor model
+model Professor {
+  id            String    @id @default(cuid())
+  firstName     String
+  lastName      String
+  email         String?   @unique
+  department    String
+  bio           String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  courses       CourseProfessor[]
+  reviews       Review[]
+
+  @@map("professors")
+}
+
+// Junction table for Course-Professor many-to-many relationship
+model CourseProfessor {
+  id          String   @id @default(cuid())
+  courseId    String
+  professorId String
+  createdAt   DateTime @default(now())
+
+  course      Course     @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  professor   Professor  @relation(fields: [professorId], references: [id], onDelete: Cascade)
+
+  @@unique([courseId, professorId])
+  @@map("course_professors")
+}
+
+// Review model - main review entity
+model Review {
+  id              String      @id @default(cuid())
+  userId          String
+  courseId        String?
+  professorId     String?
+  rating          Int         // 1-5 stars
+  difficulty      Int?        // 1-5 difficulty rating
+  workload        Int?        // 1-5 workload rating
+  content         String      // Review text
+  isAnonymous     Boolean     @default(false)
+  isApproved      Boolean     @default(false) // For moderation
+  isEdited        Boolean     @default(false)
+  helpfulCount    Int         @default(0)
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  // Relations
+  user            User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course          Course?     @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  professor       Professor?  @relation(fields: [professorId], references: [id], onDelete: Cascade)
+  comments        Comment[]
+  likes           Like[]
+  reports         Report[]
+
+  @@index([courseId])
+  @@index([professorId])
+  @@index([userId])
+  @@map("reviews")
+}
+
+// Comment model - comments on reviews
+model Comment {
+  id          String   @id @default(cuid())
+  reviewId   String
+  userId      String
+  content     String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  review      Review   @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([reviewId])
+  @@map("comments")
+}
+
+// Like model - likes on reviews
+model Like {
+  id          String   @id @default(cuid())
+  reviewId    String
+  userId      String
+  createdAt   DateTime @default(now())
+
+  // Relations
+  review      Review   @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([reviewId, userId])
+  @@index([reviewId])
+  @@map("likes")
+}
+
+// Admin model - admin-specific data
+model Admin {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  permissions String[] // Array of permission strings
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("admins")
+}
+
+// Report model - for reporting inappropriate content
+model Report {
+  id          String      @id @default(cuid())
+  reviewId    String
+  userId      String      // User who reported
+  reason      ReportReason
+  description String?
+  status      ReportStatus @default(PENDING)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  resolvedAt  DateTime?
+  resolvedBy  String?     // Admin ID who resolved
+
+  // Relations
+  review      Review      @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([reviewId])
+  @@index([status])
+  @@map("reports")
+}
+
+enum ReportReason {
+  SPAM
+  HARASSMENT
+  INAPPROPRIATE_CONTENT
+  FALSE_INFORMATION
+  OTHER
+}
+
+enum ReportStatus {
+  PENDING
+  REVIEWED
+  RESOLVED
+  DISMISSED
+}
