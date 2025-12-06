@@ -36,7 +36,7 @@ interface Review {
   }
 }
 
-export default function Home() {
+export default function DashboardPage() {
   const router = useRouter()
   const [user, setUser] = useState<any>(null)
   const [reviews, setReviews] = useState<Review[]>([])
@@ -100,6 +100,33 @@ export default function Home() {
       }
     } catch (error) {
       console.error('Error liking review:', error)
+    }
+  }
+
+  const handleEdit = (reviewId: string) => {
+    router.push(`/reviews/${reviewId}/edit`)
+  }
+
+  const handleDelete = async (reviewId: string) => {
+    const token = localStorage.getItem('token')
+    if (!token) return
+
+    try {
+      const response = await fetch(`/api/reviews/${reviewId}`, {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+
+      if (response.ok) {
+        fetchUserReviews()
+      } else {
+        const data = await response.json()
+        alert(data.error || 'Failed to delete review')
+      }
+    } catch (error) {
+      alert('An error occurred. Please try again.')
     }
   }
 
@@ -176,6 +203,10 @@ export default function Home() {
                     key={review.id}
                     review={review}
                     onLike={handleLike}
+                    onEdit={handleEdit}
+                    onDelete={handleDelete}
+                    currentUserId={user?.id}
+                    currentUserRole={user?.role}
                   />
                 ))}
               </div>
