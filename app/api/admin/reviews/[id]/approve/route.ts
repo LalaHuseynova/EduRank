@@ -48,10 +48,10 @@ export async function POST(
       },
     })
 
-    // Update analytics
     if (review.courseId) {
       await updateCourseRating(review.courseId)
     }
+
     if (review.professorId) {
       await updateProfessorRating(review.professorId)
     }
@@ -72,4 +72,3 @@ export async function POST(
     )
   }
 }
-
