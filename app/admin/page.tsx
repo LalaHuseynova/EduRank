@@ -44,10 +44,11 @@ export default function AdminDashboardPage() {
       }
       setUser(parsedUser)
       fetchStats()
-    } catch (e) {
+    } catch {
       router.push('/auth/login')
     }
-  }, [router])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const fetchStats = async () => {
     try {
@@ -87,28 +88,32 @@ export default function AdminDashboardPage() {
       <Navbar />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
-          <p className="mt-2 text-gray-600">Platform overview and management</p>
+          <h1 className="text-3xl font-bold text-[#262626]">Admin Dashboard</h1>
+          <p className="mt-2 text-[#262626]">Platform overview and management</p>
         </div>
 
         {stats && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             <div className="bg-white rounded-lg shadow-md p-6">
-              <h3 className="text-sm font-medium text-gray-500">Total Users</h3>
-              <p className="text-3xl font-bold text-gray-900 mt-2">{stats.users.total}</p>
+              <h3 className="text-sm font-medium text-[#262626]">Total Users</h3>
+              <p className="text-3xl font-bold text-[#262626] mt-2">{stats.users.total}</p>
             </div>
             <div className="bg-white rounded-lg shadow-md p-6">
-              <h3 className="text-sm font-medium text-gray-500">Total Courses</h3>
-              <p className="text-3xl font-bold text-gray-900 mt-2">{stats.courses.total}</p>
+              <h3 className="text-sm font-medium text-[#262626]">Total Courses</h3>
+              <p className="text-3xl font-bold text-[#262626] mt-2">{stats.courses.total}</p>
             </div>
             <div className="bg-white rounded-lg shadow-md p-6">
-              <h3 className="text-sm font-medium text-gray-500">Total Professors</h3>
-              <p className="text-3xl font-bold text-gray-900 mt-2">{stats.professors.total}</p>
+              <h3 className="text-sm font-medium text-[#262626]">Total Professors</h3>
+              <p className="text-3xl font-bold text-[#262626] mt-2">
+                {stats.professors.total}
+              </p>
             </div>
             <div className="bg-white rounded-lg shadow-md p-6">
-              <h3 className="text-sm font-medium text-gray-500">Total Reviews</h3>
-              <p className="text-3xl font-bold text-gray-900 mt-2">{stats.reviews.total}</p>
-              <p className="text-sm text-gray-600 mt-1">
+              <h3 className="text-sm font-medium text-[#262626]">Total Reviews</h3>
+              <p className="text-3xl font-bold text-[#262626] mt-2">
+                {stats.reviews.total}
+              </p>
+              <p className="text-sm text-[#262626] mt-1">
                 Avg Rating: {stats.reviews.averageRating.toFixed(1)}/5
               </p>
             </div>
@@ -117,8 +122,10 @@ export default function AdminDashboardPage() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="bg-white rounded-lg shadow-md p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Review Moderation</h2>
-            <p className="text-gray-600 mb-4">
+            <h2 className="text-xl font-semibold text-[#262626] mb-4">
+              Review Moderation
+            </h2>
+            <p className="text-[#262626] mb-4">
               {stats?.reviews.pending || 0} reviews pending approval
             </p>
             <Link
@@ -130,8 +137,8 @@ export default function AdminDashboardPage() {
           </div>
 
           <div className="bg-white rounded-lg shadow-md p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Reports</h2>
-            <p className="text-gray-600 mb-4">
+            <h2 className="text-xl font-semibold text-[#262626] mb-4">Reports</h2>
+            <p className="text-[#262626] mb-4">
               {stats?.reports.pending || 0} reports pending review
             </p>
             <Link
@@ -146,6 +153,3 @@ export default function AdminDashboardPage() {
     </div>
   )
 }
-
-
-
