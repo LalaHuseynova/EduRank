@@ -33,7 +33,6 @@ export async function GET(request: NextRequest) {
       prisma.report.count({ where: { status: 'PENDING' } }),
     ])
 
-    // Calculate average ratings
     const allReviews = await prisma.review.findMany({
       where: { isApproved: true },
       select: { rating: true },
@@ -73,4 +72,3 @@ export async function GET(request: NextRequest) {
     )
   }
 }
-
