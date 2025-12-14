@@ -1,10 +1,16 @@
 'use client'
 
+// React hooks for state and lifecycle management
 import { useEffect, useState } from 'react'
+
+// Next.js router for client-side redirects
 import { useRouter } from 'next/navigation'
+
+// Shared UI components
 import Navbar from '@/components/Navbar'
 import FilterDropdown from '@/components/FilterDropdown'
 
+// Report data structure used by the admin reports page
 interface Report {
   id: string
   reason: string
@@ -28,17 +34,28 @@ interface Report {
   }
 }
 
+// Admin-only page for managing reported reviews
 export default function ReportsPage() {
   const router = useRouter()
+
+  // Logged-in admin user
   const [user, setUser] = useState<any>(null)
+
+  // List of reports fetched from the API
   const [reports, setReports] = useState<Report[]>([])
+
+  // Loading state for initial fetch
   const [loading, setLoading] = useState(true)
+
+  // Current status filter value
   const [statusFilter, setStatusFilter] = useState('')
 
+  // Authentication check and data fetch on filter change
   useEffect(() => {
     const token = localStorage.getItem('token')
     const userData = localStorage.getItem('user')
 
+    // Redirect unauthenticated users
     if (!token || !userData) {
       router.push('/auth/login')
       return
@@ -46,17 +63,23 @@ export default function ReportsPage() {
 
     try {
       const parsedUser = JSON.parse(userData)
+
+      // Restrict access to admin users only
       if (parsedUser.role !== 'ADMIN') {
         router.push('/dashboard')
         return
       }
+
       setUser(parsedUser)
       fetchReports()
-    } catch (e) {
+    } catch {
+      // Handle invalid stored user data
       router.push('/auth/login')
     }
-  }, [router, statusFilter])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [statusFilter])
 
+  // Fetch reports with optional status filtering
   const fetchReports = async () => {
     try {
       const token = localStorage.getItem('token')
@@ -82,6 +105,7 @@ export default function ReportsPage() {
     }
   }
 
+  // Update the status of a report (resolve, dismiss, etc.)
   const handleUpdateStatus = async (reportId: string, status: string) => {
     try {
       const token = localStorage.getItem('token')
@@ -101,11 +125,12 @@ export default function ReportsPage() {
       } else {
         alert('Failed to update report status')
       }
-    } catch (error) {
+    } catch {
       alert('An error occurred')
     }
   }
 
+  // Loading screen while reports are being fetched
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
@@ -120,9 +145,12 @@ export default function ReportsPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Page header and status filter */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-4">Reports</h1>
+          <h1 className="text-3xl font-bold text-[#262626] mb-4">Reports</h1>
+
           <div className="w-64">
             <FilterDropdown
               label="Filter by Status"
@@ -139,27 +167,34 @@ export default function ReportsPage() {
           </div>
         </div>
 
+        {/* Empty state */}
         {reports.length === 0 ? (
-          <div className="bg-white rounded-lg shadow p-8 text-center text-gray-500">
+          <div className="bg-white rounded-lg shadow p-8 text-center text-[#262626]">
             No reports found.
           </div>
         ) : (
           <div className="space-y-4">
+            {/* Render each report card */}
             {reports.map((report) => (
               <div key={report.id} className="bg-white rounded-lg shadow-md p-6">
                 <div className="flex justify-between items-start mb-4">
+                  {/* Report metadata */}
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-900">
+                    <h3 className="text-lg font-semibold text-[#262626]">
                       Report #{report.id.slice(0, 8)}
                     </h3>
-                    <p className="text-sm text-gray-600 mt-1">
+
+                    <p className="text-sm text-[#262626] mt-1">
                       Reason: {report.reason} • Status: {report.status}
                     </p>
-                    <p className="text-sm text-gray-500 mt-1">
+
+                    <p className="text-sm text-[#262626] mt-1">
                       Reported by: {report.user.firstName} {report.user.lastName} •{' '}
                       {new Date(report.createdAt).toLocaleDateString()}
                     </p>
                   </div>
+
+                  {/* Action buttons for pending reports */}
                   <div className="flex gap-2">
                     {report.status === 'PENDING' && (
                       <>
@@ -169,6 +204,7 @@ export default function ReportsPage() {
                         >
                           Resolve
                         </button>
+
                         <button
                           onClick={() => handleUpdateStatus(report.id, 'DISMISSED')}
                           className="bg-gray-600 text-white px-3 py-1 rounded text-sm hover:bg-gray-700"
@@ -179,14 +215,23 @@ export default function ReportsPage() {
                     )}
                   </div>
                 </div>
+
+                {/* Optional report description */}
                 {report.description && (
-                  <p className="text-gray-700 mb-4">{report.description}</p>
+                  <p className="text-[#262626] mb-4">{report.description}</p>
                 )}
+
+                {/* Reported review details */}
                 <div className="bg-gray-50 rounded p-4">
-                  <h4 className="font-medium text-gray-900 mb-2">Reported Review:</h4>
-                  <p className="text-gray-700">{report.review.content}</p>
-                  <p className="text-sm text-gray-600 mt-2">
-                    By: {report.review.user.firstName} {report.review.user.lastName} • Rating:{' '}
+                  <h4 className="font-medium text-[#262626] mb-2">
+                    Reported Review:
+                  </h4>
+
+                  <p className="text-[#262626]">{report.review.content}</p>
+
+                  <p className="text-sm text-[#262626] mt-2">
+                    By: {report.review.user.firstName}{' '}
+                    {report.review.user.lastName} • Rating:{' '}
                     {report.review.rating}/5
                   </p>
                 </div>
@@ -198,6 +243,3 @@ export default function ReportsPage() {
     </div>
   )
 }
-
-
-
