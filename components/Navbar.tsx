@@ -12,6 +12,7 @@ interface User {
   role: string
 }
 
+
 export default function Navbar() {
   const router = useRouter()
   const [user, setUser] = useState<User | null>(null)
