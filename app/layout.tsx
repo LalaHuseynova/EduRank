@@ -1,6 +1,10 @@
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
+<<<<<<< HEAD
 import './global.css'
+=======
+import './globals.css'
+>>>>>>> e250cd2 (Add app directory)
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -20,3 +24,4 @@ export default function RootLayout({
     </html>
   )
 }
+
