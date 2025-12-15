@@ -1,13 +1,21 @@
 'use client'
 
+// React hooks for state and lifecycle management
 import { useEffect, useState } from 'react'
+
+// Next.js router for navigation
 import { useRouter } from 'next/navigation'
+
+// Link component for client-side navigation
 import Link from 'next/link'
+
+// Shared UI components
 import Navbar from '@/components/Navbar'
 import SearchBar from '@/components/SearchBar'
 import FilterDropdown from '@/components/FilterDropdown'
 import RatingStars from '@/components/RatingStars'
 
+// Course data structure
 interface Course {
   id: string
   code: string
@@ -27,18 +35,31 @@ interface Course {
   }
 }
 
+// Courses listing page
 export default function CoursesPage() {
   const router = useRouter()
+
+  // List of courses to display
   const [courses, setCourses] = useState<Course[]>([])
+
+  // Loading state for API requests
   const [loading, setLoading] = useState(true)
+
+  // Search input value
   const [searchQuery, setSearchQuery] = useState('')
+
+  // Selected department filter
   const [departmentFilter, setDepartmentFilter] = useState('')
+
+  // Available department options
   const [departments, setDepartments] = useState<string[]>([])
 
+  // Fetch courses when search or filter changes
   useEffect(() => {
     fetchCourses()
   }, [searchQuery, departmentFilter])
 
+  // Fetch courses from the API with optional filters
   const fetchCourses = async () => {
     setLoading(true)
     try {
@@ -50,7 +71,8 @@ export default function CoursesPage() {
       if (response.ok) {
         const data = await response.json()
         setCourses(data.courses)
-        // Extract unique departments
+
+        // Extract unique departments for filter dropdown
         const uniqueDepts = Array.from(
           new Set(data.courses.map((c: Course) => c.department))
         ) as string[]
@@ -63,6 +85,7 @@ export default function CoursesPage() {
     }
   }
 
+  // Convert departments into dropdown options
   const departmentOptions = departments.map((dept) => ({
     value: dept,
     label: dept,
@@ -71,16 +94,22 @@ export default function CoursesPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Page header and filters */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-4">Courses</h1>
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Course search */}
             <div className="md:col-span-2">
               <SearchBar
                 placeholder="Search courses by name or code..."
                 onSearch={setSearchQuery}
               />
             </div>
+
+            {/* Department filter */}
             <div>
               <FilterDropdown
                 label="Department"
@@ -93,6 +122,7 @@ export default function CoursesPage() {
           </div>
         </div>
 
+        {/* Loading / empty / results states */}
         {loading ? (
           <div className="text-center py-12">Loading courses...</div>
         ) : courses.length === 0 ? (
@@ -101,6 +131,7 @@ export default function CoursesPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {/* Course cards */}
             {courses.map((course) => (
               <Link
                 key={course.id}
@@ -108,13 +139,21 @@ export default function CoursesPage() {
                 className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow"
               >
                 <div className="mb-3">
-                  <h3 className="text-xl font-semibold text-gray-900">{course.code}</h3>
+                  <h3 className="text-xl font-semibold text-gray-900">
+                    {course.code}
+                  </h3>
                   <h4 className="text-lg text-gray-700">{course.name}</h4>
                 </div>
-                <p className="text-sm text-gray-600 mb-2">{course.department}</p>
+
+                <p className="text-sm text-gray-600 mb-2">
+                  {course.department}
+                </p>
+
                 <p className="text-sm text-gray-500 mb-4">
                   {course.credits} credits • {course._count.reviews} reviews
                 </p>
+
+                {/* Professors list */}
                 {course.professors.length > 0 && (
                   <div className="text-sm text-gray-600">
                     <span className="font-medium">Professors: </span>
@@ -134,6 +173,3 @@ export default function CoursesPage() {
     </div>
   )
 }
-
-
-
