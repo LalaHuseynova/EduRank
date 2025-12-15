@@ -1,11 +1,19 @@
 'use client'
 
+// React hooks for state and lifecycle management
 import { useEffect, useState } from 'react'
+
+// Next.js router for client-side navigation
 import { useRouter } from 'next/navigation'
+
+// Link component for navigation
 import Link from 'next/link'
+
+// Shared UI components
 import Navbar from '@/components/Navbar'
 import ReviewCard from '@/components/ReviewCard'
 
+// Review data structure
 interface Review {
   id: string
   rating: number
@@ -36,12 +44,20 @@ interface Review {
   }
 }
 
+// User dashboard page
 export default function DashboardPage() {
   const router = useRouter()
+
+  // Logged-in user data
   const [user, setUser] = useState<any>(null)
+
+  // Reviews submitted by the user
   const [reviews, setReviews] = useState<Review[]>([])
+
+  // Loading state for dashboard data
   const [loading, setLoading] = useState(true)
 
+  // Load user data and fetch reviews on page load
   useEffect(() => {
     const token = localStorage.getItem('token')
     const userData = localStorage.getItem('user')
@@ -59,6 +75,7 @@ export default function DashboardPage() {
     }
   }, [router])
 
+  // Fetch reviews created by the logged-in user
   const fetchUserReviews = async () => {
     try {
       const token = localStorage.getItem('token')
@@ -83,6 +100,7 @@ export default function DashboardPage() {
     }
   }
 
+  // Like a review
   const handleLike = async (reviewId: string) => {
     try {
       const token = localStorage.getItem('token')
@@ -103,10 +121,12 @@ export default function DashboardPage() {
     }
   }
 
+  // Navigate to review edit page
   const handleEdit = (reviewId: string) => {
     router.push(`/reviews/${reviewId}/edit`)
   }
 
+  // Delete a review
   const handleDelete = async (reviewId: string) => {
     const token = localStorage.getItem('token')
     if (!token) return
@@ -130,6 +150,7 @@ export default function DashboardPage() {
     }
   }
 
+  // Loading state
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
@@ -144,16 +165,21 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Dashboard header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">
             {user ? `Welcome, ${user.firstName} ${user.lastName}` : 'Dashboard'}
           </h1>
           <p className="mt-2 text-gray-600">
-            {user ? 'Your review dashboard' : 'Please log in to view your personal dashboard'}
+            {user
+              ? 'Your review dashboard'
+              : 'Please log in to view your personal dashboard'}
           </p>
         </div>
 
+        {/* Login prompt for unauthenticated users */}
         {!user && (
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-6">
             <p className="text-blue-800 mb-4">
@@ -168,6 +194,7 @@ export default function DashboardPage() {
           </div>
         )}
 
+        {/* Quick navigation links */}
         <div className="mb-6 flex gap-4">
           <Link
             href="/courses"
@@ -183,9 +210,13 @@ export default function DashboardPage() {
           </Link>
         </div>
 
+        {/* User reviews section */}
         {user && (
           <div>
-            <h2 className="text-2xl font-semibold text-gray-900 mb-4">Your Reviews</h2>
+            <h2 className="text-2xl font-semibold text-gray-900 mb-4">
+              Your Reviews
+            </h2>
+
             {reviews.length === 0 ? (
               <div className="bg-white rounded-lg shadow p-8 text-center text-gray-500">
                 <p>You haven't submitted any reviews yet.</p>

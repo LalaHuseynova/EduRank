@@ -38,7 +38,7 @@ export default function EditReviewPage() {
     workload: 3,
     content: '',
   })
-
+// Fetch review data on component mount
   useEffect(() => {
     const token = localStorage.getItem('token')
     if (!token) {
@@ -50,7 +50,7 @@ export default function EditReviewPage() {
       fetchReview()
     }
   }, [params.id])
-
+// Function to fetch review details
   const fetchReview = async () => {
     try {
       const token = localStorage.getItem('token')
@@ -60,7 +60,7 @@ export default function EditReviewPage() {
           Authorization: `Bearer ${token}`,
         },
       })
-
+// Handle response and set review data
       if (response.ok) {
         const data = await response.json()
         setReview(data)
@@ -84,7 +84,7 @@ export default function EditReviewPage() {
       setLoading(false)
     }
   }
-
+// Handle form submission to update review
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
@@ -93,12 +93,12 @@ export default function EditReviewPage() {
       router.push('/auth/login')
       return
     }
-
+// Basic validation
     if (formData.content.length < 10) {
       alert('Review must be at least 10 characters')
       return
     }
-
+// Submit updated review data
     setSubmitting(true)
     try {
       const response = await fetch(`/api/reviews/${params.id}`, {
@@ -114,7 +114,7 @@ export default function EditReviewPage() {
           content: formData.content,
         }),
       })
-
+// Handle response after submission
       if (response.ok) {
         router.push(`/reviews/${params.id}`)
       } else {
@@ -127,7 +127,7 @@ export default function EditReviewPage() {
       setSubmitting(false)
     }
   }
-
+// Render loading, error, or edit form
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
@@ -136,7 +136,7 @@ export default function EditReviewPage() {
       </div>
     )
   }
-
+// Render not found message if review is missing
   if (!review) {
     return (
       <div className="min-h-screen bg-gray-50">
@@ -147,7 +147,7 @@ export default function EditReviewPage() {
       </div>
     )
   }
-
+// Render edit review form
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />

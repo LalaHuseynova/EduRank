@@ -7,7 +7,7 @@ import Navbar from '@/components/Navbar'
 import ReviewCard from '@/components/ReviewCard'
 import RatingStars from '@/components/RatingStars'
 import Modal from '@/components/Modal'
-
+// Professor data structure
 interface Professor {
   id: string
   firstName: string
@@ -28,7 +28,7 @@ interface Professor {
     reviews: number
   }
 }
-
+// Review data structure
 interface Review {
   id: string
   rating: number
@@ -42,7 +42,7 @@ interface Review {
     id: string
     firstName: string
     lastName: string
-  }
+  } // optional user field for anonymous reviews
   course?: {
     id: string
     code: string
@@ -53,7 +53,7 @@ interface Review {
     comments: number
   }
 }
-
+// Professor detail page with reviews
 export default function ProfessorDetailPage() {
   const router = useRouter()
   const params = useParams()
@@ -69,7 +69,7 @@ export default function ProfessorDetailPage() {
     isAnonymous: false,
   })
   const [submitting, setSubmitting] = useState(false)
-
+// Fetch professor details on component mount
   useEffect(() => {
     const token = localStorage.getItem('token')
     const userData = localStorage.getItem('user')
@@ -84,7 +84,7 @@ export default function ProfessorDetailPage() {
       fetchProfessor()
     }
   }, [params.id])
-
+// Fetch professor data from API
   const fetchProfessor = async () => {
     try {
       const response = await fetch(`/api/professors/${params.id}`)
@@ -98,14 +98,14 @@ export default function ProfessorDetailPage() {
       setLoading(false)
     }
   }
-
+// Handle review submission
   const handleSubmitReview = async () => {
     const token = localStorage.getItem('token')
     if (!token) {
       router.push('/auth/login')
       return
     }
-
+// Validate review content length
     setSubmitting(true)
     try {
       const response = await fetch('/api/reviews', {
@@ -140,11 +140,11 @@ export default function ProfessorDetailPage() {
       setSubmitting(false)
     }
   }
-
+// Handle liking a review
   const handleLike = async (reviewId: string) => {
     const token = localStorage.getItem('token')
     if (!token) return
-
+// Send like request to API
     try {
       const response = await fetch(`/api/reviews/${reviewId}/like`, {
         method: 'POST',
@@ -160,7 +160,7 @@ export default function ProfessorDetailPage() {
       console.error('Error liking review:', error)
     }
   }
-
+// Navigate to review edit page
   const handleEdit = (reviewId: string) => {
     router.push(`/reviews/${reviewId}/edit`)
   }
@@ -172,7 +172,7 @@ export default function ProfessorDetailPage() {
     if (!confirm('Are you sure you want to delete this review?')) {
       return
     }
-
+// Send delete request to API
     try {
       const response = await fetch(`/api/reviews/${reviewId}`, {
         method: 'DELETE',
@@ -180,7 +180,7 @@ export default function ProfessorDetailPage() {
           Authorization: `Bearer ${token}`,
         },
       })
-
+// Refresh professor data after deletion
       if (response.ok) {
         fetchProfessor()
       } else {
@@ -191,13 +191,13 @@ export default function ProfessorDetailPage() {
       alert('An error occurred. Please try again.')
     }
   }
-
+// Handle reporting a review
   const handleReport = async (reviewId: string) => {
     const reason = prompt(
       'Reason for reporting (SPAM, HARASSMENT, INAPPROPRIATE_CONTENT, FALSE_INFORMATION, OTHER):'
     )
     if (!reason) return
-
+// Send report request to API
     const token = localStorage.getItem('token')
     if (!token) {
       router.push('/auth/login')
@@ -216,7 +216,7 @@ export default function ProfessorDetailPage() {
           reason,
         }),
       })
-
+// Handle report response
       if (response.ok) {
         alert('Report submitted successfully')
       } else {
@@ -227,7 +227,7 @@ export default function ProfessorDetailPage() {
       alert('An error occurred. Please try again.')
     }
   }
-
+// Render loading, error, or professor details
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
@@ -238,7 +238,7 @@ export default function ProfessorDetailPage() {
       </div>
     )
   }
-
+// Render not found message if professor data is missing
   if (!professor) {
     return (
       <div className="min-h-screen bg-gray-50">
@@ -249,7 +249,7 @@ export default function ProfessorDetailPage() {
       </div>
     )
   }
-
+// Render professor details and reviews
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
