@@ -1,0 +1,185 @@
+'use client'
+
+import { useEffect, useState } from 'react'
+import { useParams, useRouter } from 'next/navigation'
+import Navbar from '@/components/Navbar'
+import ReviewCard from '@/components/ReviewCard'
+
+interface Comment {
+  id: string
+  content: string
+  createdAt: string
+  user: {
+    id: string
+    firstName: string
+    lastName: string
+  }
+}
+
+interface Review {
+  id: string
+  rating: number
+  difficulty?: number | null
+  workload?: number | null
+  content: string
+  isAnonymous: boolean
+  helpfulCount: number
+  createdAt: string
+  user: {
+    id: string
+    firstName: string
+    lastName: string
+  }
+  _count?: {
+    likes: number
+    comments: number
+  }
+}
+
+
+export default function ReviewDetailPage() {
+  const params = useParams()
+  const router = useRouter()
+
+  const [review, setReview] = useState<Review | null>(null)
+  const [comments, setComments] = useState<Comment[]>([])
+  const [newComment, setNewComment] = useState('')
+  const [loading, setLoading] = useState(true)
+  const [submitting, setSubmitting] = useState(false)
+
+  /* ---------------- FETCH REVIEW ---------------- */
+  const fetchReview = async () => {
+    try {
+      const res = await fetch(`/api/reviews/${params.id}`)
+      if (!res.ok) throw new Error('Failed to fetch review')
+      const data = await res.json()
+      setReview(data)
+    } catch (err) {
+      console.error(err)
+    }
+  }
+
+  /* ---------------- FETCH COMMENTS ---------------- */
+  const fetchComments = async () => {
+    try {
+      const res = await fetch(`/api/reviews/${params.id}/comments`)
+      if (!res.ok) throw new Error('Failed to fetch comments')
+      const data = await res.json()
+      setComments(data.comments)
+    } catch (err) {
+      console.error(err)
+    }
+  }
+
+  useEffect(() => {
+    if (!params.id) return
+
+    Promise.all([fetchReview(), fetchComments()]).finally(() =>
+      setLoading(false)
+    )
+  }, [params.id])
+
+  /* ---------------- ADD COMMENT ---------------- */
+  const handleAddComment = async () => {
+    const token = localStorage.getItem('token')
+    if (!token) {
+      router.push('/auth/login')
+      return
+    }
+
+    if (newComment.trim().length < 2) return
+
+    setSubmitting(true)
+    try {
+      const res = await fetch(`/api/reviews/${params.id}/comments`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ content: newComment }),
+      })
+
+      if (!res.ok) throw new Error('Failed to post comment')
+
+      setNewComment('')
+      fetchComments()
+    } catch (err) {
+      alert('Failed to post comment')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  /* ---------------- SAFE LOADING ---------------- */
+  if (loading || !review) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Navbar />
+        <div className="text-center py-10 text-gray-600">
+          Loading review...
+        </div>
+      </div>
+    )
+  }
+
+  /* ---------------- RENDER ---------------- */
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <Navbar />
+
+      <div className="max-w-4xl mx-auto px-4 py-8">
+        {/* REVIEW */}
+        <ReviewCard review={review} showActions={false} />
+
+        {/* COMMENTS */}
+        <h2 className="text-xl font-semibold mb-4 text-[#262626]">Comments</h2>
+    
+        {comments.length === 0 ? (
+          <p className="text-gray-500 mb-6">No comments yet</p>
+        ) : (
+          <div className="space-y-4 mb-6">
+            {comments.map((c) => (
+              <div
+                key={c.id}
+                className="bg-white border rounded-lg p-4"
+              >
+                <p className="text-[#262626]">{c.content}</p>
+                <p className="text-sm text-gray-500 mt-1">
+                  {c.user.firstName} {c.user.lastName}
+                </p>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* ADD COMMENT */}
+        <div className="bg-white border rounded-lg p-4">
+          <textarea
+            value={newComment}
+            onChange={(e) => setNewComment(e.target.value)}
+            rows={3}
+            placeholder="Write a comment..."
+            className=" 
+            w-full
+            border
+            rounded
+            p-2
+            mb-3
+            text-[#262626]
+            placeholder:text-[#888]
+            bg-white"
+/>
+
+          <button
+            onClick={handleAddComment}
+            disabled={submitting || newComment.trim().length < 2}
+            className="bg-blue-600 text-white px-4 py-2 rounded disabled:opacity-50"
+          >
+            {submitting ? 'Posting...' : 'Post Comment'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}

@@ -1,0 +1,455 @@
+'use client'
+
+import { useEffect, useState } from 'react'
+import { useRouter, useParams } from 'next/navigation'
+import Link from 'next/link'
+import Navbar from '@/components/Navbar'
+import ReviewCard from '@/components/ReviewCard'
+import RatingStars from '@/components/RatingStars'
+import Modal from '@/components/Modal'
+// Professor data structure
+interface Professor {
+  id: string
+  firstName: string
+  lastName: string
+  email?: string
+  department: string
+  bio?: string
+  averageRating: number
+  courses: Array<{
+    course: {
+      id: string
+      code: string
+      name: string
+    }
+  }>
+  reviews: Review[]
+  _count: {
+    reviews: number
+  }
+}
+// Review data structure
+interface Review {
+  id: string
+  rating: number
+  difficulty?: number | null
+  workload?: number | null
+  content: string
+  isAnonymous: boolean
+  helpfulCount: number
+  createdAt: string
+  user: {
+    id: string
+    firstName: string
+    lastName: string
+  } // optional user field for anonymous reviews
+  course?: {
+    id: string
+    code: string
+    name: string
+  } | null
+  _count: {
+    likes: number
+    comments: number
+  }
+}
+// Professor detail page with reviews
+export default function ProfessorDetailPage() {
+  const router = useRouter()
+  const params = useParams()
+  const [professor, setProfessor] = useState<Professor | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [user, setUser] = useState<any>(null)
+  const [showReviewModal, setShowReviewModal] = useState(false)
+  const [reviewForm, setReviewForm] = useState({
+    rating: 5,
+    difficulty: 3,
+    workload: 3,
+    content: '',
+    isAnonymous: false,
+  })
+  const [submitting, setSubmitting] = useState(false)
+// Fetch professor details on component mount
+  useEffect(() => {
+    const token = localStorage.getItem('token')
+    const userData = localStorage.getItem('user')
+    if (token && userData) {
+      try {
+        setUser(JSON.parse(userData))
+      } catch (e) {
+        console.error('Error parsing user data:', e)
+      }
+    }
+    if (params.id) {
+      fetchProfessor()
+    }
+  }, [params.id])
+// Fetch professor data from API
+  const fetchProfessor = async () => {
+    try {
+      const response = await fetch(`/api/professors/${params.id}`)
+      if (response.ok) {
+        const data = await response.json()
+        setProfessor(data)
+      }
+    } catch (error) {
+      console.error('Error fetching professor:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+// Handle review submission
+  const handleSubmitReview = async () => {
+    const token = localStorage.getItem('token')
+    if (!token) {
+      router.push('/auth/login')
+      return
+    }
+// Validate review content length
+    setSubmitting(true)
+    try {
+      const response = await fetch('/api/reviews', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          ...reviewForm,
+          professorId: params.id,
+        }),
+      })
+
+      if (response.ok) {
+        setShowReviewModal(false)
+        setReviewForm({
+          rating: 5,
+          difficulty: 3,
+          workload: 3,
+          content: '',
+          isAnonymous: false,
+        })
+        fetchProfessor()
+      } else {
+        const data = await response.json()
+        alert(data.error || 'Failed to submit review')
+      }
+    } catch (error) {
+      alert('An error occurred. Please try again.')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+// Handle liking a review
+  const handleLike = async (reviewId: string) => {
+    const token = localStorage.getItem('token')
+    if (!token) return
+// Send like request to API
+    try {
+      const response = await fetch(`/api/reviews/${reviewId}/like`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+
+      if (response.ok) {
+        fetchProfessor()
+      }
+    } catch (error) {
+      console.error('Error liking review:', error)
+    }
+  }
+// Navigate to review edit page
+  const handleEdit = (reviewId: string) => {
+    router.push(`/reviews/${reviewId}/edit`)
+  }
+
+  const handleDelete = async (reviewId: string) => {
+    const token = localStorage.getItem('token')
+    if (!token) return
+
+    if (!confirm('Are you sure you want to delete this review?')) {
+      return
+    }
+// Send delete request to API
+    try {
+      const response = await fetch(`/api/reviews/${reviewId}`, {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+// Refresh professor data after deletion
+      if (response.ok) {
+        fetchProfessor()
+      } else {
+        const data = await response.json()
+        alert(data.error || 'Failed to delete review')
+      }
+    } catch (error) {
+      alert('An error occurred. Please try again.')
+    }
+  }
+// Handle reporting a review
+  const handleReport = async (reviewId: string) => {
+    const reason = prompt(
+      'Reason for reporting (SPAM, HARASSMENT, INAPPROPRIATE_CONTENT, FALSE_INFORMATION, OTHER):'
+    )
+    if (!reason) return
+// Send report request to API
+    const token = localStorage.getItem('token')
+    if (!token) {
+      router.push('/auth/login')
+      return
+    }
+
+    try {
+      const response = await fetch('/api/reports', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          reviewId,
+          reason,
+        }),
+      })
+// Handle report response
+      if (response.ok) {
+        alert('Report submitted successfully')
+      } else {
+        const data = await response.json()
+        alert(data.error || 'Failed to submit report')
+      }
+    } catch (error) {
+      alert('An error occurred. Please try again.')
+    }
+  }
+// Render loading, error, or professor details
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Navbar />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="text-center">Loading...</div>
+        </div>
+      </div>
+    )
+  }
+// Render not found message if professor data is missing
+  if (!professor) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Navbar />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="text-center">Professor not found</div>
+        </div>
+      </div>
+    )
+  }
+// Render professor details and reviews
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <Navbar />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+          <div className="flex justify-between items-start">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">
+                {professor.firstName} {professor.lastName}
+              </h1>
+              <p className="text-gray-600 mt-2">{professor.department}</p>
+              {professor.email && (
+                <p className="text-gray-500 mt-1">{professor.email}</p>
+              )}
+              {professor.bio && (
+                <p className="text-gray-700 mt-4">{professor.bio}</p>
+              )}
+              {professor.courses.length > 0 && (
+                <div className="mt-4">
+                  <span className="font-medium text-gray-700">Courses: </span>
+                  {professor.courses.map((cp, idx) => (
+                    <Link
+                      key={cp.course.id}
+                      href={`/courses/${cp.course.id}`}
+                      className="text-blue-600 hover:underline"
+                    >
+                      {cp.course.code}: {cp.course.name}
+                      {idx < professor.courses.length - 1 && ', '}
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="text-right">
+              <RatingStars rating={professor.averageRating} size={24} />
+              <p className="text-sm text-gray-600 mt-2">
+                {professor._count.reviews}{' '}
+                {professor._count.reviews === 1 ? 'review' : 'reviews'}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="mb-6">
+          <button
+            onClick={() => {
+              const token = localStorage.getItem('token')
+              if (!token) {
+                router.push('/auth/login')
+                return
+              }
+              setShowReviewModal(true)
+            }}
+            className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700"
+          >
+            Write a Review
+          </button>
+        </div>
+
+        <div>
+          <h2 className="text-2xl font-semibold text-gray-900 mb-4">
+            Reviews
+          </h2>
+
+          {professor.reviews.length === 0 ? (
+            <div className="bg-white rounded-lg shadow p-8 text-center text-gray-500">
+              No reviews yet. Be the first to review this professor!
+            </div>
+          ) : (
+            <div>
+              {professor.reviews.map((review) => (
+                <ReviewCard
+                  key={review.id}
+                  review={review}
+                  onLike={handleLike}
+                  onReport={handleReport}
+                  onEdit={handleEdit}
+                  onDelete={handleDelete}
+                  currentUserId={user?.id}
+                  currentUserRole={user?.role}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+
+        <Modal
+          isOpen={showReviewModal}
+          onClose={() => setShowReviewModal(false)}
+          title="Write a Review"
+          size="lg"
+        >
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Rating (1-5 stars)
+              </label>
+              <RatingStars
+                rating={reviewForm.rating}
+                interactive
+                onRatingChange={(rating) =>
+                  setReviewForm({ ...reviewForm, rating })
+                }
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Difficulty (1-5)
+              </label>
+              <input
+                type="number"
+                min="1"
+                max="5"
+                value={reviewForm.difficulty}
+                onChange={(e) =>
+                  setReviewForm({
+                    ...reviewForm,
+                    difficulty: parseInt(e.target.value),
+                  })
+                }
+                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Workload (1-5)
+              </label>
+              <input
+                type="number"
+                min="1"
+                max="5"
+                value={reviewForm.workload}
+                onChange={(e) =>
+                  setReviewForm({
+                    ...reviewForm,
+                    workload: parseInt(e.target.value),
+                  })
+                }
+                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Review Content
+              </label>
+              <textarea
+                value={reviewForm.content}
+                onChange={(e) =>
+                  setReviewForm({
+                    ...reviewForm,
+                    content: e.target.value,
+                  })
+                }
+                rows={6}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                placeholder="Share your experience with this professor..."
+                minLength={10}
+              />
+            </div>
+
+            <div className="flex items-center">
+              <input
+                type="checkbox"
+                id="anonymous"
+                checked={reviewForm.isAnonymous}
+                onChange={(e) =>
+                  setReviewForm({
+                    ...reviewForm,
+                    isAnonymous: e.target.checked,
+                  })
+                }
+                className="mr-2"
+              />
+              <label htmlFor="anonymous" className="text-sm text-gray-700">
+                Post anonymously
+              </label>
+            </div>
+
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setShowReviewModal(false)}
+                className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSubmitReview}
+                disabled={submitting || reviewForm.content.length < 10}
+                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+              >
+                {submitting ? 'Submitting...' : 'Submit Review'}
+              </button>
+            </div>
+          </div>
+        </Modal>
+      </div>
+    </div>
+  )
+}
