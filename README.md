@@ -19,12 +19,11 @@ EduRank bridges this gap by providing:
 
 ### Key Features
 - 🔐 **Secure Authentication**: Login restricted to verified ADA University emails
-- ⭐ **Structured Rating System**: Rate courses on workload, teaching clarity, and overall experience (1-5 scale)
+-  **Structured Rating System**: Rate courses on workload, teaching clarity, and overall experience (1-5 scale)
 - 💬 **Anonymous Reviews**: Write detailed feedback without revealing your identity
 - 🔍 **Search & Filter**: Find courses by name, department, or rating
-- 📊 **Analytics Dashboard**: View top-rated professors and popular courses
 - 🛡️ **Content Moderation**: Admin tools to manage inappropriate or biased reviews
-- ✏️ **Review Management**: Edit or delete your own reviews within 30 days
+-  **Review Management**: Edit or delete your own reviews 
 
 ---
 
@@ -81,7 +80,7 @@ brew install node dos2unix
 
 4. **Clone and setup**:
 ```bash
-git clone <YOUR_REPO_URL>
+git clone <https://github.com/LalaHuseynova/EduRank.git>
 cd EduRank
 npm install
 ```
@@ -121,16 +120,22 @@ http://localhost:3000
 
 ```
 EduRank/
-├── prisma/              # Database schema and migrations
-├── public/              # Static assets
-├── src/
-│   ├── components/      # React components
-│   ├── pages/           # Next.js pages
-│   ├── styles/          # CSS files
-│   └── utils/           # Helper functions
-├── edurank_fixed.sql    # Database seed file
-├── docker-compose.yml   # Docker configuration
-└── package.json         # Dependencies
+├── app/                    # Next.js app directory (routing and pages)
+├── components/             # Reusable React components
+├── lib/                    # Utility functions and helpers
+├── prisma/                 # Database schema and migrations
+├── edurank_fixed.sql       # PostgreSQL database seed file
+├── docker-compose.yml      # Docker configuration for PostgreSQL
+├── next.config.js          # Next.js configuration
+├── tailwind.config.ts      # Tailwind CSS configuration
+├── tsconfig.json           # TypeScript configuration
+├── package.json            # Project dependencies
+├── .eslintrc.json          # ESLint configuration
+├── .gitignore              # Git ignore rules
+├── .prettierrc             # Prettier code formatting rules
+├── postcss.config.js       # PostCSS configuration
+├── SETUP_for_mac.md        # macOS setup instructions
+└── README.md               # Project documentation
 ```
 
 ---
@@ -206,6 +211,22 @@ npm run db:generate
 5. ✅ Facilitate informed decision-making for course selection
 
 ---
+## IMPORTANT NOTES:
+- because of privacy we did not commit .env file so before running the application, Please create the .env file and inside:
+```
+# Database Configuration
+# Update this with your PostgreSQL connection string
+# Format: postgresql://username:password@host:port/database?schema=public
+DATABASE_URL="postgresql://postgres:app@localhost:5433/app_db?schema=public"
+
+# JWT Secret for token generation
+# Generate a strong random string (use: openssl rand -base64 32)
+# Or on Windows PowerShell: [Convert]::ToBase64String((1..32 | ForEach-Object { Get-Random -Maximum 256 }))
+JWT_SECRET="your-super-secret-jwt-key-change-this-in-production"
+
+# Environment
+NODE_ENV="development"
+```
 
 ## 📖 References
 
@@ -215,4 +236,3 @@ npm run db:generate
 - [Functional vs Non-Functional Requirements](https://www.geeksforgeeks.org/software-engineering/functional-vs-non-functional-requirements/)
 
 ---
-
