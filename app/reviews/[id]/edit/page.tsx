@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
-import Link from 'next/link'
 import Navbar from '@/components/Navbar'
 import RatingStars from '@/components/RatingStars'
 
@@ -38,7 +37,7 @@ export default function EditReviewPage() {
     workload: 3,
     content: '',
   })
-// Fetch review data on component mount
+
   useEffect(() => {
     const token = localStorage.getItem('token')
     if (!token) {
@@ -50,7 +49,7 @@ export default function EditReviewPage() {
       fetchReview()
     }
   }, [params.id])
-// Function to fetch review details
+
   const fetchReview = async () => {
     try {
       const token = localStorage.getItem('token')
@@ -60,7 +59,7 @@ export default function EditReviewPage() {
           Authorization: `Bearer ${token}`,
         },
       })
-// Handle response and set review data
+
       if (response.ok) {
         const data = await response.json()
         setReview(data)
@@ -72,19 +71,15 @@ export default function EditReviewPage() {
           content: data.content,
         })
       } else {
-        const errorData = await response.json()
-        alert(errorData.error || 'Failed to load review')
         router.back()
       }
-    } catch (error) {
-      console.error('Error fetching review:', error)
-      alert('An error occurred. Please try again.')
+    } catch {
       router.back()
     } finally {
       setLoading(false)
     }
   }
-// Handle form submission to update review
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
@@ -93,12 +88,12 @@ export default function EditReviewPage() {
       router.push('/auth/login')
       return
     }
-// Basic validation
+
     if (formData.content.length < 10) {
       alert('Review must be at least 10 characters')
       return
     }
-// Submit updated review data
+
     setSubmitting(true)
     try {
       const response = await fetch(`/api/reviews/${params.id}`, {
@@ -107,63 +102,62 @@ export default function EditReviewPage() {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          rating: formData.rating,
-          difficulty: formData.difficulty,
-          workload: formData.workload,
-          content: formData.content,
-        }),
+        body: JSON.stringify(formData),
       })
-// Handle response after submission
+
       if (response.ok) {
         router.push(`/reviews/${params.id}`)
       } else {
-        const data = await response.json()
-        alert(data.error || 'Failed to update review')
+        alert('Failed to update review')
       }
-    } catch (error) {
-      alert('An error occurred. Please try again.')
+    } catch {
+      alert('An error occurred')
     } finally {
       setSubmitting(false)
     }
   }
-// Render loading, error, or edit form
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-gray-200">
         <Navbar />
-        <div className="max-w-2xl mx-auto py-8 text-center">Loading...</div>
+        <div className="max-w-2xl mx-auto py-8 text-center text-gray-800">
+          Loading...
+        </div>
       </div>
     )
   }
-// Render not found message if review is missing
+
   if (!review) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-gray-200">
         <Navbar />
-        <div className="max-w-2xl mx-auto py-8 text-center text-gray-500">
+        <div className="max-w-2xl mx-auto py-8 text-center text-gray-700">
           Review not found
         </div>
       </div>
     )
   }
-// Render edit review form
+
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-200">
       <Navbar />
 
       <div className="max-w-2xl mx-auto px-4 py-8">
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h1 className="text-2xl font-bold text-gray-900 mb-6">Edit Review</h1>
+        <div className="bg-gray-100 rounded-lg shadow-lg p-6">
+          <h1 className="text-2xl font-bold text-gray-900 mb-6">
+            Edit Review
+          </h1>
 
           {review.course && (
-            <div className="mb-4 text-sm text-gray-600">
+            <div className="mb-4 text-sm text-gray-800">
               Course: {review.course.code}: {review.course.name}
             </div>
           )}
           {review.professor && (
-            <div className="mb-4 text-sm text-gray-600">
-              Professor: {review.professor.firstName} {review.professor.lastName}
+            <div className="mb-4 text-sm text-gray-800">
+              Professor: {review.professor.firstName}{' '}
+              {review.professor.lastName}
             </div>
           )}
 
@@ -171,7 +165,7 @@ export default function EditReviewPage() {
 
             {/* Rating */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-900 mb-2">
                 Rating
               </label>
 
@@ -184,18 +178,20 @@ export default function EditReviewPage() {
                   onChange={(e) =>
                     setFormData({ ...formData, rating: parseInt(e.target.value) })
                   }
-                  className="flex-1"
+                  className="flex-1 accent-blue-800"
                 />
                 <div className="flex items-center gap-1">
                   <RatingStars rating={formData.rating} />
-                  <span className="text-sm text-gray-600">{formData.rating}/5</span>
+                  <span className="text-sm text-gray-800">
+                    {formData.rating}/5
+                  </span>
                 </div>
               </div>
             </div>
 
             {/* Difficulty */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-900 mb-2">
                 Difficulty
               </label>
 
@@ -205,18 +201,21 @@ export default function EditReviewPage() {
                 max="5"
                 value={formData.difficulty}
                 onChange={(e) =>
-                  setFormData({ ...formData, difficulty: parseInt(e.target.value) })
+                  setFormData({
+                    ...formData,
+                    difficulty: parseInt(e.target.value),
+                  })
                 }
-                className="w-full"
+                className="w-full accent-blue-800"
               />
-              <div className="text-sm text-gray-600 mt-1">
+              <div className="text-sm text-gray-800 mt-1">
                 {formData.difficulty}/5
               </div>
             </div>
 
             {/* Workload */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-900 mb-2">
                 Workload
               </label>
 
@@ -226,18 +225,21 @@ export default function EditReviewPage() {
                 max="5"
                 value={formData.workload}
                 onChange={(e) =>
-                  setFormData({ ...formData, workload: parseInt(e.target.value) })
+                  setFormData({
+                    ...formData,
+                    workload: parseInt(e.target.value),
+                  })
                 }
-                className="w-full"
+                className="w-full accent-blue-800"
               />
-              <div className="text-sm text-gray-600 mt-1">
+              <div className="text-sm text-gray-800 mt-1">
                 {formData.workload}/5
               </div>
             </div>
 
             {/* Content */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-900 mb-2">
                 Review Content
               </label>
 
@@ -246,12 +248,13 @@ export default function EditReviewPage() {
                 onChange={(e) =>
                   setFormData({ ...formData, content: e.target.value })
                 }
-                className="w-full px-4 py-2 border rounded-lg"
                 rows={8}
                 minLength={10}
                 required
+                className="w-full px-4 py-2 border border-gray-400 bg-gray-200 text-gray-900 rounded-lg focus:ring-2 focus:ring-blue-800 focus:border-blue-800"
               />
-              <div className="text-sm text-gray-500 mt-1">
+
+              <div className="text-sm text-gray-700 mt-1">
                 {formData.content.length}/10 characters
               </div>
             </div>
@@ -261,7 +264,7 @@ export default function EditReviewPage() {
               <button
                 type="submit"
                 disabled={submitting || formData.content.length < 10}
-                className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                className="bg-blue-800 text-white px-6 py-2 rounded-lg hover:bg-blue-900 disabled:opacity-50"
               >
                 {submitting ? 'Updating...' : 'Update Review'}
               </button>
@@ -269,7 +272,7 @@ export default function EditReviewPage() {
               <button
                 type="button"
                 onClick={() => router.back()}
-                className="bg-gray-300 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-400"
+                className="bg-gray-500 text-gray-900 px-6 py-2 rounded-lg hover:bg-gray-600"
               >
                 Cancel
               </button>

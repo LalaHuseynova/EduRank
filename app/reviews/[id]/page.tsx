@@ -36,7 +36,6 @@ interface Review {
   }
 }
 
-
 export default function ReviewDetailPage() {
   const params = useParams()
   const router = useRouter()
@@ -104,19 +103,19 @@ export default function ReviewDetailPage() {
 
       setNewComment('')
       fetchComments()
-    } catch (err) {
+    } catch {
       alert('Failed to post comment')
     } finally {
       setSubmitting(false)
     }
   }
 
-  /* ---------------- SAFE LOADING ---------------- */
+  /* ---------------- LOADING ---------------- */
   if (loading || !review) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-gray-200">
         <Navbar />
-        <div className="text-center py-10 text-gray-600">
+        <div className="text-center py-10 text-gray-800">
           Loading review...
         </div>
       </div>
@@ -125,7 +124,7 @@ export default function ReviewDetailPage() {
 
   /* ---------------- RENDER ---------------- */
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-200">
       <Navbar />
 
       <div className="max-w-4xl mx-auto px-4 py-8">
@@ -133,19 +132,21 @@ export default function ReviewDetailPage() {
         <ReviewCard review={review} showActions={false} />
 
         {/* COMMENTS */}
-        <h2 className="text-xl font-semibold mb-4 text-[#262626]">Comments</h2>
-    
+        <h2 className="text-xl font-semibold mb-4 text-gray-900">
+          Comments
+        </h2>
+
         {comments.length === 0 ? (
-          <p className="text-gray-500 mb-6">No comments yet</p>
+          <p className="text-gray-700 mb-6">No comments yet</p>
         ) : (
           <div className="space-y-4 mb-6">
             {comments.map((c) => (
               <div
                 key={c.id}
-                className="bg-white border rounded-lg p-4"
+                className="bg-gray-100 border border-gray-400 rounded-lg p-4"
               >
-                <p className="text-[#262626]">{c.content}</p>
-                <p className="text-sm text-gray-500 mt-1">
+                <p className="text-gray-900">{c.content}</p>
+                <p className="text-sm text-gray-700 mt-1">
                   {c.user.firstName} {c.user.lastName}
                 </p>
               </div>
@@ -154,27 +155,31 @@ export default function ReviewDetailPage() {
         )}
 
         {/* ADD COMMENT */}
-        <div className="bg-white border rounded-lg p-4">
+        <div className="bg-gray-100 border border-gray-400 rounded-lg p-4">
           <textarea
             value={newComment}
             onChange={(e) => setNewComment(e.target.value)}
             rows={3}
             placeholder="Write a comment..."
-            className=" 
-            w-full
-            border
-            rounded
-            p-2
-            mb-3
-            text-[#262626]
-            placeholder:text-[#888]
-            bg-white"
-/>
+            className="
+              w-full
+              border border-gray-400
+              rounded-lg
+              p-2
+              mb-3
+              bg-gray-200
+              text-gray-900
+              placeholder:text-gray-600
+              focus:ring-2
+              focus:ring-blue-800
+              focus:border-blue-800
+            "
+          />
 
           <button
             onClick={handleAddComment}
             disabled={submitting || newComment.trim().length < 2}
-            className="bg-blue-600 text-white px-4 py-2 rounded disabled:opacity-50"
+            className="bg-blue-800 text-white px-4 py-2 rounded-lg hover:bg-blue-900 disabled:opacity-50"
           >
             {submitting ? 'Posting...' : 'Post Comment'}
           </button>

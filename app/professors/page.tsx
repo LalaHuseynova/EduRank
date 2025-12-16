@@ -10,7 +10,7 @@ export default function ProfessorsPage() {
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [department, setDepartment] = useState('')
-  
+
   useEffect(() => {
     fetchProfessors()
   }, [])
